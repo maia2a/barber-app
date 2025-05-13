@@ -1,11 +1,10 @@
 import Image from "next/image"
 import BarbershopItem from "./_components/barbershop-item"
+import { BookingItem } from "./_components/booking-item"
 import Header from "./_components/header"
 import SearchBar from "./_components/SearchBar"
-import { Avatar, AvatarImage } from "./_components/ui/avatar"
-import { Badge } from "./_components/ui/badge"
-import { Button } from "./_components/ui/button"
 import { Card, CardContent } from "./_components/ui/card"
+import { quickSearchOptions } from "./_constants/search"
 import { db } from "./_lib/prisma"
 
 const Home = async () => {
@@ -30,23 +29,20 @@ const Home = async () => {
 
         {/* Fast Search */}
         <div className="mt-6 flex gap-3 overflow-x-scroll [&::-webkit-scrollbar]:hidden">
-          <Button className="gap-2" variant="secondary">
-            <Image src="/cabelo.svg" alt="Cabelo" width={16} height={16} />
-            Cabelo
-          </Button>
-          <Button className="gap-2" variant="secondary">
-            <Image src="/barba.svg" alt="Barba" width={16} height={16} />
-            Cabelo
-          </Button>
-          <Button className="gap-2" variant="secondary">
-            <Image
-              src="/acabamento.svg"
-              alt="Acabamento"
-              width={16}
-              height={16}
-            />
-            Cabelo
-          </Button>
+          {quickSearchOptions.map((option) => (
+            <div
+              key={option.title}
+              className="flex h-[100px] w-[100px] flex-col items-center justify-center rounded-lg bg-gray-100 p-2"
+            >
+              <Image
+                src={option.imageUrl}
+                alt={option.title}
+                width={40}
+                height={40}
+              />
+              <p className="mt-2 text-sm font-semibold">{option.title}</p>
+            </div>
+          ))}
         </div>
 
         {/* Imagem */}
@@ -60,29 +56,7 @@ const Home = async () => {
         </div>
 
         {/* AGENDAMENTO */}
-
-        <h2 className="mb-3 mt-6 text-xl font-bold">Agendamentos</h2>
-
-        <Card>
-          <CardContent className="flex justify-between p-0">
-            <div className="flex flex-col gap-2 py-5 pl-5">
-              <Badge>Confirmado</Badge>
-              <h3 className="font-semibold">Corte de cabelo</h3>
-
-              <div className="flex items-center gap-2">
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src="https://utfs.io/f/c97a2dc9-cf62-468b-a851-bfd2bdde775f-16p.png" />
-                </Avatar>
-                <p className="text-sm font-semibold">Barbearia do Zé</p>
-              </div>
-            </div>
-            <div className="flex flex-col items-center justify-center border-solid px-5">
-              <p className="text-sm">Maio</p>
-              <p className="text-2xl">05</p>
-              <p className="text-sm">20:00</p>
-            </div>
-          </CardContent>
-        </Card>
+        <BookingItem />
 
         {/* Recomendados */}
         <section className="mt-6">
