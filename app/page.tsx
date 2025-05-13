@@ -1,8 +1,10 @@
 import Image from "next/image"
+import Link from "next/link"
 import BarbershopItem from "./_components/barbershop-item"
 import { BookingItem } from "./_components/booking-item"
 import Header from "./_components/header"
 import SearchBar from "./_components/SearchBar"
+import { Button } from "./_components/ui/button"
 import { Card, CardContent } from "./_components/ui/card"
 import { quickSearchOptions } from "./_constants/search"
 import { db } from "./_lib/prisma"
@@ -30,18 +32,22 @@ const Home = async () => {
         {/* Fast Search */}
         <div className="mt-6 flex gap-3 overflow-x-scroll [&::-webkit-scrollbar]:hidden">
           {quickSearchOptions.map((option) => (
-            <div
+            <Button
+              className="gap-2"
+              variant="secondary"
               key={option.title}
-              className="flex h-[100px] w-[100px] flex-col items-center justify-center rounded-lg bg-gray-100 p-2"
+              asChild
             >
-              <Image
-                src={option.imageUrl}
-                alt={option.title}
-                width={40}
-                height={40}
-              />
-              <p className="mt-2 text-sm font-semibold">{option.title}</p>
-            </div>
+              <Link href={`/barbershops?service=${option.title}`}>
+                <Image
+                  src={option.imageUrl}
+                  width={16}
+                  height={16}
+                  alt={option.title}
+                />
+                {option.title}
+              </Link>
+            </Button>
           ))}
         </div>
 
