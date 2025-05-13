@@ -4,12 +4,18 @@ import Header from "./_components/header"
 import SearchBar from "./_components/SearchBar"
 import { Avatar, AvatarImage } from "./_components/ui/avatar"
 import { Badge } from "./_components/ui/badge"
+import { Button } from "./_components/ui/button"
 import { Card, CardContent } from "./_components/ui/card"
 import { db } from "./_lib/prisma"
 
 const Home = async () => {
   // Fetch barbershops from the database
   const barbershops = await db.barbershop.findMany({})
+  const popularBarbershops = await db.barbershop.findMany({
+    orderBy: {
+      name: "desc",
+    },
+  })
   return (
     <div>
       {/* header */}
@@ -21,6 +27,27 @@ const Home = async () => {
 
         {/* Search Bar */}
         <SearchBar placeholder="Faça sua busca..." />
+
+        {/* Fast Search */}
+        <div className="mt-6 flex gap-3 overflow-x-scroll [&::-webkit-scrollbar]:hidden">
+          <Button className="gap-2" variant="secondary">
+            <Image src="/cabelo.svg" alt="Cabelo" width={16} height={16} />
+            Cabelo
+          </Button>
+          <Button className="gap-2" variant="secondary">
+            <Image src="/barba.svg" alt="Barba" width={16} height={16} />
+            Cabelo
+          </Button>
+          <Button className="gap-2" variant="secondary">
+            <Image
+              src="/acabamento.svg"
+              alt="Acabamento"
+              width={16}
+              height={16}
+            />
+            Cabelo
+          </Button>
+        </div>
 
         {/* Imagem */}
         <div className="relative mt-6 h-[150px] w-full">
@@ -68,6 +95,35 @@ const Home = async () => {
             ))}
           </div>
         </section>
+        <section className="mt-6">
+          <h2 className="mb-3 text-xs font-bold uppercase text-gray-400">
+            Populares
+          </h2>
+          <div className="flex gap-4 overflow-auto [&::-webkit-scrollbar]:hidden">
+            {popularBarbershops.map((barbershops) => (
+              <BarbershopItem key={barbershops.id} barbershop={barbershops} />
+            ))}
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="mt-6 flex w-full items-center justify-center border-t border-gray-200 py-5">
+          <Card>
+            <CardContent className="flex justify-between p-0">
+              <div className="flex flex-col gap-2 py-5 pl-5">
+                <h3 className="font-semibold">Sobre nós</h3>
+                <p className="text-sm text-gray-500">
+                  A FSW Barber é uma plataforma de agendamento de serviços de
+                  beleza.
+                </p>
+              </div>
+              <div className="flex flex-col items-center justify-center border-solid px-5">
+                <p className="text-sm">Desenvolvido por</p>
+                <p className="text-2xl">Gabriell</p>
+              </div>
+            </CardContent>
+          </Card>
+        </footer>
       </div>
     </div>
   )
