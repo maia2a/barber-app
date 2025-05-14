@@ -1,4 +1,4 @@
-import Image from "next/image"
+import { Banner } from "./_components/banner"
 import BarbershopItem from "./_components/barbershop-item"
 import { BookingItem } from "./_components/booking-item"
 import Header from "./_components/header"
@@ -30,15 +30,8 @@ const Home = async () => {
         {/* Quick Search Bar */}
         <QuickSearchBar />
 
-        {/* Imagem */}
-        <div className="relative mt-6 h-[150px] w-full">
-          <Image
-            src="/banner.png"
-            alt="Agende nos melhores com FSW Barber"
-            fill
-            className="rounded-xl object-cover"
-          />
-        </div>
+        {/* Banner */}
+        <Banner />
 
         {/* AGENDAMENTO */}
         <BookingItem />
