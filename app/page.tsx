@@ -37,26 +37,24 @@ const Home = async () => {
         <BookingItem />
 
         {/* Recomendados */}
-        <section className="mt-6">
-          <h2 className="mb-3 text-xs font-bold uppercase text-gray-400">
-            Recomendados
-          </h2>
-          <div className="flex gap-4 overflow-auto [&::-webkit-scrollbar]:hidden">
-            {barbershops.map((barbershops) => (
-              <BarbershopItem key={barbershops.id} barbershop={barbershops} />
-            ))}
-          </div>
-        </section>
-        <section className="mt-6">
-          <h2 className="mb-3 text-xs font-bold uppercase text-gray-400">
-            Populares
-          </h2>
-          <div className="flex gap-4 overflow-auto [&::-webkit-scrollbar]:hidden">
-            {popularBarbershops.map((barbershops) => (
-              <BarbershopItem key={barbershops.id} barbershop={barbershops} />
-            ))}
-          </div>
-        </section>
+
+        <h2 className="mb-3 mt-6 text-xs font-bold uppercase text-gray-400">
+          Recomendados
+        </h2>
+        <div className="flex gap-4 overflow-auto [&::-webkit-scrollbar]:hidden">
+          {barbershops.map((barbershops) => (
+            <BarbershopItem key={barbershops.id} barbershop={barbershops} />
+          ))}
+        </div>
+
+        <h2 className="mb-3 mt-6 text-xs font-bold uppercase text-gray-400">
+          Populares
+        </h2>
+        <div className="flex gap-4 overflow-auto [&::-webkit-scrollbar]:hidden">
+          {popularBarbershops.map((barbershops) => (
+            <BarbershopItem key={barbershops.id} barbershop={barbershops} />
+          ))}
+        </div>
 
         {/* Footer */}
         <footer className="mt-6 flex w-full items-center justify-center border-t border-gray-200 py-5">
