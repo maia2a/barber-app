@@ -1,8 +1,19 @@
+/**
+ * Tipo que define as propriedades de uma opção na barra de busca rápida
+ */
 interface QuickSearchOption {
   imageUrl: string
   title: string
 }
-
+/**
+ * Lista de opções pré-definidas para a barra de busca rápida.
+ * Cada item contém um título e uma imagem associada.
+ *
+ * @example
+ * - "Cabelo" com imagem "/cabelo.svg"
+ * - "Barba" com imagem "/barba.svg"
+ * - "Acabamento" com imagem "/acabamento.svg"
+ */
 export const quickSearchOptions: QuickSearchOption[] = [
   {
     imageUrl: "/cabelo.svg",
