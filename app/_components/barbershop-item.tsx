@@ -38,9 +38,11 @@ const BarbershopItem = ({ barbershop }: BarbershopItemProps) => {
         <p className="truncate text-sm text-gray-400">{barbershop.address}</p>
 
         {/* BOTAO PARA RESERVAR */}
-        <Button variant="secondary" className="mt-2 w-full" asChild>
-          <Link href={`/barbershops/${barbershop.id}`}>Reservar</Link>
-        </Button>
+        <Link href={`/barbershops/${barbershop.id}`} passHref>
+          <Button variant={"secondary"} className="mt-2 w-full">
+            Reservar
+          </Button>
+        </Link>
       </div>
     </Card>
   )
