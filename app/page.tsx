@@ -4,7 +4,6 @@ import { BookingItem } from "./_components/booking-item"
 import Header from "./_components/header"
 import { QuickSearchBar } from "./_components/quick-search-bar"
 import SearchBar from "./_components/SearchBar"
-import { Card, CardContent } from "./_components/ui/card"
 import { db } from "./_lib/prisma"
 
 const Home = async () => {
@@ -55,25 +54,6 @@ const Home = async () => {
             <BarbershopItem key={barbershops.id} barbershop={barbershops} />
           ))}
         </div>
-
-        {/* Footer */}
-        <footer className="mt-6 flex w-full items-center justify-center border-t border-gray-200 py-5">
-          <Card>
-            <CardContent className="flex justify-between p-0">
-              <div className="flex flex-col gap-2 py-5 pl-5">
-                <h3 className="font-semibold">Sobre nós</h3>
-                <p className="text-sm text-gray-500">
-                  A FSW Barber é uma plataforma de agendamento de serviços de
-                  beleza.
-                </p>
-              </div>
-              <div className="flex flex-col items-center justify-center border-solid px-5">
-                <p className="text-sm">Desenvolvido por</p>
-                <p className="text-2xl">Gabriell</p>
-              </div>
-            </CardContent>
-          </Card>
-        </footer>
       </div>
     </div>
   )
