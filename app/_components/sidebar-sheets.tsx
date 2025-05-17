@@ -1,9 +1,22 @@
-import { Avatar, AvatarImage } from "@radix-ui/react-avatar"
-import { Calendar, HomeIcon, LogOutIcon, MenuIcon } from "lucide-react"
+import {
+  Calendar,
+  HomeIcon,
+  LogInIcon,
+  LogOutIcon,
+  MenuIcon,
+} from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { quickSearchOptions } from "../_constants/search"
 import { Button } from "./ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog"
 import {
   Sheet,
   SheetClose,
@@ -30,20 +43,53 @@ export const SidebarSheets = () => {
           <SheetTitle>Menu</SheetTitle>
         </SheetHeader>
 
-        <div className="flex items-center gap-3 border-b border-solid py-5">
-          <Avatar className="h-10 w-10">
+        <div className="flex items-center justify-between border-b border-solid px-4 py-6">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-100">Bem-vindo</h2>
+            <p className="text-sm text-gray-400">Olá faça seu login</p>
+          </div>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size={"icon"} variant={"secondary"}>
+                <LogInIcon size={20} />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-[90%] max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Faça seu login na plataforma</DialogTitle>
+                <DialogDescription>
+                  Conecte-se usando sua conta Google
+                </DialogDescription>
+              </DialogHeader>
+              <Button
+                variant={"outline"}
+                className="mt-4 w-full gap-2 font-medium"
+              >
+                <Image
+                  src={"/google.svg"}
+                  width={20}
+                  height={20}
+                  alt="Google Icon"
+                />
+                Google
+              </Button>
+            </DialogContent>
+          </Dialog>
+
+          {/* <Avatar className="h-10 w-10">
             <AvatarImage
               src={
                 "https://images.unsplash.com/photo-1728577740843-5f29c7586afe?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
               }
               className="object-cover"
             />
-          </Avatar>
+          </Avatar> */}
 
-          <div>
+          {/* <div>
             <p className="font-bold">Gabriell Maia</p>
             <p className="text-xs">gabriell@developer.io</p>
-          </div>
+          </div> */}
         </div>
 
         <div className="flex flex-col gap-4 border-b border-solid p-5 py-5">
