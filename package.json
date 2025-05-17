@@ -13,7 +13,8 @@
     "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/client": "^6.7.0",
+    "@auth/prisma-adapter": "^2.9.1",
+    "@prisma/client": "^6.8.2",
     "@radix-ui/react-avatar": "^1.1.9",
     "@radix-ui/react-dialog": "^1.1.13",
     "@radix-ui/react-slot": "^1.2.2",
