@@ -24,7 +24,9 @@ const Home = async () => {
         <p className="text-sm text-gray-500">Segunda-feira, 05 de agosto</p>
 
         {/* Search Bar */}
-        <SearchBar placeholder="Faça sua busca..." />
+        <div>
+          <SearchBar />
+        </div>
 
         {/* Quick Search Bar */}
         <QuickSearchBar />
