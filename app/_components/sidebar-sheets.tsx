@@ -36,7 +36,7 @@ export const SidebarSheets = () => {
   const handleLogOutClick = () => signOut()
   return (
     <Sheet>
-      <SheetTrigger asChild>
+      <SheetTrigger asChild className="absolute right-4 top-4">
         <Button size="icon" variant="outline">
           <MenuIcon />
         </Button>
@@ -121,22 +121,19 @@ export const SidebarSheets = () => {
 
         <div className="flex flex-col gap-4 border-b border-solid p-5 py-5">
           {quickSearchOptions.map((option) => (
-            <Button
-              key={option.title}
-              className="justify-start gap-2"
-              variant={"ghost"}
-              asChild
-            >
-              <Link href={`/barbershops?title=${option.title}`}>
-                <Image
-                  alt={option.title}
-                  src={option.imageUrl}
-                  height={18}
-                  width={18}
-                />
-                {option.title}
-              </Link>
-            </Button>
+            <SheetClose key={option.title} asChild>
+              <Button className="justify-start gap-2" variant={"ghost"} asChild>
+                <Link href={`/barbershops?service=${option.title}`}>
+                  <Image
+                    alt={option.title}
+                    src={option.imageUrl}
+                    height={18}
+                    width={18}
+                  />
+                  {option.title}
+                </Link>
+              </Button>
+            </SheetClose>
           ))}
         </div>
 
