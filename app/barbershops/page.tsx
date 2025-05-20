@@ -18,6 +18,8 @@ interface BarbershopsPageProps {
  * - Serviço oferecido (`service`)
  */
 const BarbershopsPage = async ({ searchParams }: BarbershopsPageProps) => {
+  // Aguarde o acesso aos paramêtros de busca
+  const { title, service } = await searchParams
   /**
    * Busca as barbearias no banco de dados com base nos filtros fornecidos.
    *
@@ -27,20 +29,20 @@ const BarbershopsPage = async ({ searchParams }: BarbershopsPageProps) => {
   const barbershops = await db.barbershop.findMany({
     where: {
       OR: [
-        searchParams?.title
+        title
           ? {
               name: {
-                contains: searchParams?.title,
+                contains: title,
                 mode: "insensitive",
               },
             }
           : {},
-        searchParams.service
+        service
           ? {
               services: {
                 some: {
                   name: {
-                    contains: searchParams.service,
+                    contains: service,
                     mode: "insensitive",
                   },
                 },
@@ -62,8 +64,7 @@ const BarbershopsPage = async ({ searchParams }: BarbershopsPageProps) => {
       {/* Resultados da busca */}
       <div className="px-5">
         <h2 className="mb-3 mt-6 text-xs font-bold uppercase text-gray-400">
-          Resultados para &quot;{searchParams?.title || searchParams?.service}
-          &quot;
+          Resultados para &quot;{title || service}&quot;
         </h2>
         {/* Grade de barbearias */}
         <div className="grid grid-cols-2 gap-4">

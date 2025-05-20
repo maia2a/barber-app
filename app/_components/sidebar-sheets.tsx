@@ -7,20 +7,14 @@ import {
   LogOutIcon,
   MenuIcon,
 } from "lucide-react"
-import { signIn, signOut, useSession } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 import Image from "next/image"
 import Link from "next/link"
 import { quickSearchOptions } from "../_constants/search"
+import SignInDialog from "./sign-in-dialog"
 import { Avatar, AvatarImage } from "./ui/avatar"
 import { Button } from "./ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog"
+import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog"
 import {
   Sheet,
   SheetClose,
@@ -32,30 +26,28 @@ import {
 
 export const SidebarSheets = () => {
   const { data } = useSession()
-  const handleLoginWithGoogle = () => signIn("google")
   const handleLogOutClick = () => signOut()
   return (
     <Sheet>
-      <SheetTrigger asChild className="absolute right-4 top-4">
-        <Button size="icon" variant="outline">
+      {/*Trigger para abrir o menu lateral */}
+      <SheetTrigger asChild>
+        <Button variant={"secondary"} size={"icon"}>
           <MenuIcon />
         </Button>
       </SheetTrigger>
-      <SheetContent>
+
+      {/* Conteudo do menu lateral */}
+      <SheetContent className="overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Menu</SheetTitle>
+          <SheetTitle className="text-left">Menu</SheetTitle>
         </SheetHeader>
 
-        <div className="flex items-center justify-between border-b border-solid px-4 py-6">
+        {/* Seção de perfil ou login */}
+        <div className="flex items-center justify-between gap-3 border-b border-solid py-5">
           {data?.user ? (
             <div className="flex items-center gap-2">
-              <Avatar className="h-10 w-10">
-                <AvatarImage
-                  src={data?.user?.image ?? ""}
-                  height={18}
-                  width={18}
-                  className="object-cover"
-                />
+              <Avatar>
+                <AvatarImage src={data?.user?.image ?? ""} />
               </Avatar>
 
               <div>
@@ -65,46 +57,23 @@ export const SidebarSheets = () => {
             </div>
           ) : (
             <>
-              <div>
-                <h2 className="text-lg font-semibold text-gray-100">
-                  Bem-vindo
-                </h2>
-                <p className="text-sm text-gray-400">Faça seu login</p>
-              </div>
-
+              <h2>Olá, faça seu login</h2>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button size={"icon"} variant={"secondary"}>
-                    <LogInIcon size={20} />
+                  <Button size={"icon"}>
+                    <LogInIcon />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="w-[90%] max-w-sm">
-                  <DialogHeader>
-                    <DialogTitle>Faça seu login na plataforma</DialogTitle>
-                    <DialogDescription>
-                      Conecte-se usando sua conta Google
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Button
-                    variant={"outline"}
-                    className="mt-4 w-full gap-2 font-medium"
-                    onClick={handleLoginWithGoogle}
-                  >
-                    <Image
-                      src={"/google.svg"}
-                      width={20}
-                      height={20}
-                      alt="Google Icon"
-                    />
-                    Google
-                  </Button>
+                <DialogContent className="w-[90%]">
+                  <SignInDialog />
                 </DialogContent>
               </Dialog>
             </>
           )}
         </div>
 
-        <div className="flex flex-col gap-4 border-b border-solid p-5 py-5">
+        {/* Seção de navegação */}
+        <div className="flex flex-col gap-2 border-b border-solid py-5">
           <SheetClose asChild>
             <Button className="justify-start gap-2" variant={"ghost"} asChild>
               <Link href={"/"}>
@@ -119,7 +88,8 @@ export const SidebarSheets = () => {
           </Button>
         </div>
 
-        <div className="flex flex-col gap-4 border-b border-solid p-5 py-5">
+        {/* Seção de busca rápida pelo serviço */}
+        <div className="flex flex-col gap-2 py-5">
           {quickSearchOptions.map((option) => (
             <SheetClose key={option.title} asChild>
               <Button className="justify-start gap-2" variant={"ghost"} asChild>
@@ -137,16 +107,19 @@ export const SidebarSheets = () => {
           ))}
         </div>
 
-        <div className="flex flex-col gap-4 border-b border-solid p-5 py-5">
-          <Button
-            className="justify-start gap-2"
-            variant={"ghost"}
-            onClick={handleLogOutClick}
-          >
-            <LogOutIcon size={18} />
-            Sair da conta
-          </Button>
-        </div>
+        {/* Seção de logout */}
+        {data?.user && (
+          <div className="flex flex-col gap-2 py-5">
+            <Button
+              className="justify-start gap-2"
+              variant={"ghost"}
+              onClick={handleLogOutClick}
+            >
+              <LogOutIcon size={18} />
+              Sair da conta
+            </Button>
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   )

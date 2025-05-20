@@ -11,27 +11,35 @@ import { useForm } from "react-hook-form"
 import { Button } from "./ui/button"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "./ui/form"
 
+// Definição do schema de validação do Zod
 const formSchema = z.object({
   title: z.string().trim().min(1, {
     message: "Digite algo para buscar",
   }),
 })
 
-const SearchBar = () => {
-  const form = useForm<z.infer<typeof formSchema>>({
+//Tipagem dos dados do formulário
+type FormData = z.infer<typeof formSchema>
+
+export default function SearchBar() {
+  const router = useRouter()
+
+  // Inicializa o formulário com o hook useForm
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
     },
   })
 
-  const router = useRouter()
-  const handleSubmit = (data: z.infer<typeof formSchema>) => {
-    router.push(`/barbershops?title=${data.title}`)
+  // Função chamada quando o formulário é enviado
+  function onSubmit(data: FormData) {
+    router.push(`/barbershops?title=${encodeURIComponent(data.title)}`)
   }
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="flex gap-2">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex gap-2">
         <FormField
           control={form.control}
           name="title"
@@ -48,12 +56,10 @@ const SearchBar = () => {
             </FormItem>
           )}
         />
-        <Button type="submit">
-          <SearchIcon />
+        <Button type="submit" variant="secondary">
+          <SearchIcon size={20} />
         </Button>
       </form>
     </Form>
   )
 }
-
-export default SearchBar

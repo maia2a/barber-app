@@ -13,7 +13,7 @@ export default async function BarbershopPage({
 }: {
   params: { id: string }
 }) {
-  const id = params.id
+  const { id } = await params
 
   const barbershop = await db.barbershop.findUnique({
     where: {
@@ -51,9 +51,13 @@ export default async function BarbershopPage({
           </Link>
         </Button>
 
-        <SidebarSheets />
+        {/* Sidebar */}
+        <div className="absolute right-4 top-4">
+          <SidebarSheets />
+        </div>
       </div>
 
+      {/* Barbershop Info */}
       <div className="border-b border-solid p-5">
         <h1 className="mb-3 text-xl font-bold">{barbershop.name}</h1>
         <div className="mb-2 flex items-center gap-2">
