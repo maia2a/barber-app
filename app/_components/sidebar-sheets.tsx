@@ -39,7 +39,7 @@ export const SidebarSheets = () => {
       {/* Conteudo do menu lateral */}
       <SheetContent className="overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-left">Menu</SheetTitle>
+          <SheetTitle className="text-center">Menu</SheetTitle>
         </SheetHeader>
 
         {/* Seção de perfil ou login */}
@@ -60,7 +60,7 @@ export const SidebarSheets = () => {
               <h2>Olá, faça seu login</h2>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button size={"icon"}>
+                  <Button variant={"ghost"} size={"icon"}>
                     <LogInIcon />
                   </Button>
                 </DialogTrigger>
