@@ -156,7 +156,7 @@ export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                         <SheetFooter>
                           <SheetClose asChild>
                             <Button
-                              variant="secondary"
+                              variant="default"
                               className="w-full"
                               onClick={handleReserve}
                             >
