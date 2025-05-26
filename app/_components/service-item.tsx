@@ -2,10 +2,13 @@
 
 import { Calendar } from "@/app/_components/ui/calendar"
 import type { Barbershop, BarbershopService } from "@prisma/client"
-import { format } from "date-fns"
+import { format, set } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { useSession } from "next-auth/react"
 import Image from "next/image"
 import { useState } from "react"
+import { toast } from "sonner"
+import { createBooking } from "../_actions/create-booking"
 import { Button } from "./ui/button"
 import { Card, CardContent } from "./ui/card"
 import {
@@ -49,14 +52,37 @@ const TIME_LIST = [
 ]
 
 export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
+  const { data } = useSession()
   const [selectedDate, setSelectedDate] = useState<Date | undefined>()
   const [selectedTime, setSelectedTime] = useState<string | undefined>()
 
-  const handleReserve = () => {
-    if (selectedDate && selectedTime) {
-      alert(
-        `Reserva feita para o dia ${format(selectedDate, "d 'de' MMMM", { locale: ptBR })} às ${selectedTime} na barbearia ${barbershop.name}`,
-      )
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date)
+    setSelectedTime(undefined) // Reset time selection when date changes
+  }
+
+  const handleTimeSelect = (time: string) => {
+    setSelectedTime(time)
+  }
+
+  const handleCreateBooking = async () => {
+    try {
+      if (!selectedDate || !selectedTime) return
+      const hour = selectedTime.split(":")[0]
+      const minutes = selectedTime.split(":")[1]
+      const newDate = set(selectedDate, {
+        minutes: Number(minutes),
+        hours: Number(hour),
+      })
+      toast.success("Reserva criada com sucesso!")
+      await createBooking({
+        serviceId: service.id,
+        userId: data?.user as string,
+        date: newDate,
+      })
+    } catch (error) {
+      console.error("Error creating booking:", error)
+      toast.error("Erro ao criar reserva")
     }
   }
 
@@ -101,7 +127,7 @@ export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                     mode="single"
                     locale={ptBR}
                     selected={selectedDate}
-                    onSelect={setSelectedDate}
+                    onSelect={handleDateSelect}
                     className="w-auto"
                     classNames={{
                       caption: "flex justify-center pt-1 relative items-center",
@@ -158,7 +184,7 @@ export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                             <Button
                               variant="default"
                               className="w-full"
-                              onClick={handleReserve}
+                              onClick={handleCreateBooking}
                             >
                               Reservar
                             </Button>

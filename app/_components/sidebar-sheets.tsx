@@ -57,7 +57,7 @@ export const SidebarSheets = () => {
             </div>
           ) : (
             <>
-              <h2>Olá, faça seu login</h2>
+              <h2 className="text-lg font-bold">Olá, faça login</h2>
               <Dialog>
                 <DialogTrigger asChild>
                   <Button variant={"ghost"} size={"icon"}>

@@ -1,3 +1,4 @@
+import { Toaster } from "@/app/_components/ui/sonner"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Footer } from "./_components/footer"
@@ -35,6 +36,7 @@ export default function RootLayout({
             <Footer />
           </div>
         </AuthProvider>
+        <Toaster />
       </body>
     </html>
   )
