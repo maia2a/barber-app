@@ -1,14 +1,15 @@
 "use client"
 
 import { Calendar } from "@/app/_components/ui/calendar"
-import type { Barbershop, BarbershopService } from "@prisma/client"
-import { format, set } from "date-fns"
+import type { Barbershop, BarbershopService, Booking } from "@prisma/client"
+import { addDays, format, set } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { useSession } from "next-auth/react"
 import Image from "next/image"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { createBooking } from "../_actions/create-booking"
+import { getBookings } from "../_actions/get-bookings"
 import { Button } from "./ui/button"
 import { Card, CardContent } from "./ui/card"
 import {
@@ -51,10 +52,51 @@ const TIME_LIST = [
   "18:30",
 ]
 
+const getTimeList = (bookings: Booking[]) => {
+  return TIME_LIST.filter((time) => {
+    const hour = Number(time.split(":")[0])
+    const minutes = Number(time.split(":")[1])
+
+    // Check if the hour is already booked
+    const hasBookingAtTime = bookings.some(
+      (booking) =>
+        booking.date.getHours() === hour &&
+        bookings.some((booking) => booking.date.getMinutes() === minutes),
+    )
+    if (hasBookingAtTime) {
+      return false
+    }
+    return true
+  })
+}
+
 export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
   const { data } = useSession()
   const [selectedDate, setSelectedDate] = useState<Date | undefined>()
   const [selectedTime, setSelectedTime] = useState<string | undefined>()
+  const [dayBookings, setDayBookings] = useState<Booking[]>([])
+  const [bookingSheetOpen, setBookingSheetOpen] = useState(false)
+
+  useEffect(() => {
+    const fetch = async () => {
+      if (!selectedDate) return
+      const bookings = await getBookings({
+        serviceId: service.id,
+        date: selectedDate,
+      })
+      setDayBookings(bookings)
+    }
+    fetch()
+  }, [selectedDate, service.id])
+
+  const handleSheetOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      setSelectedDate(undefined)
+      setSelectedTime(undefined)
+      setDayBookings([])
+    }
+    setBookingSheetOpen(isOpen)
+  }
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date)
@@ -80,6 +122,7 @@ export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
         userId: data?.user as string,
         date: newDate,
       })
+      handleSheetOpenChange(false) // Close the sheet after booking
     } catch (error) {
       console.error("Error creating booking:", error)
       toast.error("Erro ao criar reserva")
@@ -110,8 +153,8 @@ export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
               }).format(Number(service.price))}
             </p>
 
-            <Sheet>
-              <SheetTrigger asChild>
+            <Sheet open={bookingSheetOpen} onOpenChange={handleSheetOpenChange}>
+              <SheetTrigger>
                 <Button variant="secondary" size="sm">
                   Reservar
                 </Button>
@@ -126,6 +169,7 @@ export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
                   <Calendar
                     mode="single"
                     locale={ptBR}
+                    fromDate={addDays(new Date(), 1)}
                     selected={selectedDate}
                     onSelect={handleDateSelect}
                     className="w-auto"
@@ -143,12 +187,12 @@ export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
 
                 {selectedDate && (
                   <div className="flex gap-3 overflow-x-auto border-b p-5 [&::-webkit-scrollbar]:hidden">
-                    {TIME_LIST.map((time) => (
+                    {getTimeList(dayBookings).map((time) => (
                       <Button
                         key={time}
                         variant={selectedTime === time ? "default" : "outline"}
                         className="rounded-full"
-                        onClick={() => setSelectedTime(time)}
+                        onClick={() => handleTimeSelect(time)}
                       >
                         {time}
                       </Button>
