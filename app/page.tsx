@@ -1,19 +1,38 @@
+import { getServerSession, type Session } from "next-auth"
 import { Banner } from "./_components/banner"
 import BarbershopItem from "./_components/barbershop-item"
 import { BookingItem } from "./_components/booking-item"
 import Header from "./_components/header"
 import { QuickSearchBar } from "./_components/quick-search-bar"
 import SearchBar from "./_components/SearchBar"
+import { authOptions } from "./_lib/auth"
 import { db } from "./_lib/prisma"
 
 const Home = async () => {
+  // Get the current session to check if the user is authenticated
+  const session: Session | null = await getServerSession(authOptions)
   // Fetch barbershops from the database
   const barbershops = await db.barbershop.findMany({})
+  // Fetch popular barbershops from the database, ordered by name in descending order
   const popularBarbershops = await db.barbershop.findMany({
     orderBy: {
       name: "desc",
     },
   })
+  const bookings = session?.user
+    ? await db.booking.findMany({
+        where: {
+          userId: session.user.id,
+        },
+        include: {
+          service: {
+            include: {
+              barbershop: true,
+            },
+          },
+        },
+      })
+    : []
   return (
     <div>
       {/* header */}
@@ -35,7 +54,14 @@ const Home = async () => {
         <Banner />
 
         {/* AGENDAMENTO */}
-        <BookingItem />
+        <h2 className="mb-3 mt-6 text-xs font-bold uppercase text-gray-400">
+          Agendamentos
+        </h2>
+        <div className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+          {bookings.map((booking) => (
+            <BookingItem key={booking.id} booking={booking} />
+          ))}
+        </div>
 
         {/* Recomendados */}
 
