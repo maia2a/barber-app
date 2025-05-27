@@ -26,6 +26,7 @@ export const authOptions: AuthOptions = {
         ...(session.user ?? {}),
         id: user.id, // Ensure the session user has an ID
       }
+
       // Return the modified session object
       // This allows us to access the user ID in the session throughout the app
       return session

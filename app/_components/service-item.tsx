@@ -2,11 +2,11 @@
 
 import { Calendar } from "@/app/_components/ui/calendar"
 import type { Barbershop, BarbershopService, Booking } from "@prisma/client"
-import { format, set } from "date-fns"
+import { format, set, type Locale } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { useSession } from "next-auth/react"
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { createBooking } from "../_actions/create-booking"
 import { getBookings } from "../_actions/get-bookings"
@@ -16,19 +16,19 @@ import { Card, CardContent } from "./ui/card"
 import { Dialog, DialogContent } from "./ui/dialog"
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetFooter,
   SheetHeader,
   SheetTitle,
 } from "./ui/sheet"
 
+// Define ServiceItemProps interface
 interface ServiceItemProps {
   service: BarbershopService
   barbershop: Pick<Barbershop, "name">
 }
 
-const TIME_LIST = [
+const ALL_POSSIBLE_TIMES_SLOTS = [
   "08:00",
   "08:30",
   "09:00",
@@ -51,235 +51,366 @@ const TIME_LIST = [
   "17:30",
   "18:00",
   "18:30",
-]
+] as const
 
-const getTimeList = (bookings: Booking[]) => {
-  return TIME_LIST.filter((time) => {
-    const hour = Number(time.split(":")[0])
-    const minutes = Number(time.split(":")[1])
+const CALENDAR_CLASSNAMES = {
+  caption: "flex justify-center pt-1 relative items-center",
+  caption_label: "text-sm font-medium",
+  cell: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+  day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
+  day_selected:
+    "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
+  day_today: "bg-accent text-accent-foreground",
+}
+// --- Helper Functions for Time Slot Filtering ---
+const parseTimeSlot = (
+  timeSlotString: string,
+): { hour: number; minutes: number } => {
+  const [hourString, minutesString] = timeSlotString.split(":")
+  return {
+    hour: Number(hourString),
+    minutes: Number(minutesString),
+  }
+}
 
-    // Check if the hour is already booked
-    const hasBookingAtTime = bookings.some(
-      (booking) =>
-        booking.date.getHours() === hour &&
-        bookings.some((booking) => booking.date.getMinutes() === minutes),
-    )
-    if (hasBookingAtTime) {
-      return false
-    }
-    return true
+// --- Time List Generation ---
+const isTimeSlotBooked = (
+  slotHour: number,
+  slotMinutes: number,
+  dailyBookings: Booking[],
+): boolean => {
+  return dailyBookings.some((booking) => {
+    const bookingHour = booking.date.getHours()
+    const bookingMinutes = booking.date.getMinutes()
+    return bookingHour === slotHour && bookingMinutes === slotMinutes
   })
 }
 
-export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
-  const [signInDialogOpen, setSignInDialogOpen] = useState(false)
-  const { data } = useSession()
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>()
-  const [selectedTime, setSelectedTime] = useState<string | undefined>()
-  const [dayBookings, setDayBookings] = useState<Booking[]>([])
-  const [bookingSheetOpen, setBookingSheetOpen] = useState(false)
-
-  useEffect(() => {
-    const fetch = async () => {
-      if (!selectedDate) return
-      const bookings = await getBookings({
-        serviceId: service.id,
-        date: selectedDate,
-      })
-      setDayBookings(bookings)
-    }
-    fetch()
-  }, [selectedDate, service.id])
-
-  const handleBookingClick = () => {
-    if (data?.user) {
-      return setBookingSheetOpen(true)
-    }
-    return setSignInDialogOpen(true)
-  }
-
-  const handleSheetOpenChange = (isOpen: boolean) => {
-    if (!isOpen) {
-      setSelectedDate(undefined)
-      setSelectedTime(undefined)
-      setDayBookings([])
-    }
-    setBookingSheetOpen(isOpen)
-  }
-
-  const handleDateSelect = (date: Date | undefined) => {
-    setSelectedDate(date)
-    setSelectedTime(undefined) // Reset time selection when date changes
-  }
-
-  const handleTimeSelect = (time: string) => {
-    setSelectedTime(time)
-  }
-
-  const handleCreateBooking = async () => {
-    try {
-      if (!selectedDate || !selectedTime) return
-      const hour = selectedTime.split(":")[0]
-      const minutes = selectedTime.split(":")[1]
-      const newDate = set(selectedDate, {
-        minutes: Number(minutes),
-        hours: Number(hour),
-      })
-      toast.success("Reserva criada com sucesso!")
-      await createBooking({
-        serviceId: service.id,
-        userId: data?.user.id,
-        date: newDate,
-      })
-      handleSheetOpenChange(false) // Close the sheet after booking
-    } catch (error) {
-      console.error("Error creating booking:", error)
-      toast.error("Erro ao criar reserva")
-    }
-  }
-
-  return (
-    <>
-      <Card>
-        <CardContent className="flex items-center gap-3 p-3">
-          <div className="relative h-[110px] w-[110px]">
-            <Image
-              src={service.imageUrl}
-              fill
-              className="rounded-lg object-cover"
-              alt={service.name}
-            />
-          </div>
-
-          <div className="w-full space-y-3">
-            <h3 className="text-sm font-semibold">{service.name}</h3>
-            <p className="text-sm text-gray-400">{service.description}</p>
-
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-bold text-primary">
-                {Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(Number(service.price))}
-              </p>
-
-              <Sheet
-                open={bookingSheetOpen}
-                onOpenChange={handleSheetOpenChange}
-              >
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleBookingClick}
-                >
-                  Reservar
-                </Button>
-
-                <SheetContent className="px-0">
-                  <SheetHeader>
-                    <SheetTitle className="text-center">
-                      Fazer reserva
-                    </SheetTitle>
-                  </SheetHeader>
-
-                  <div className="flex justify-center border-b">
-                    <Calendar
-                      mode="single"
-                      locale={ptBR}
-                      fromDate={new Date()}
-                      selected={selectedDate}
-                      onSelect={handleDateSelect}
-                      className="w-auto"
-                      classNames={{
-                        caption:
-                          "flex justify-center pt-1 relative items-center",
-                        caption_label: "text-sm font-medium",
-                        cell: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
-                        day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
-                        day_selected:
-                          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
-                        day_today: "bg-accent text-accent-foreground",
-                      }}
-                    />
-                  </div>
-
-                  {selectedDate && (
-                    <div className="flex gap-3 overflow-x-auto border-b p-5 [&::-webkit-scrollbar]:hidden">
-                      {getTimeList(dayBookings).map((time) => (
-                        <Button
-                          key={time}
-                          variant={
-                            selectedTime === time ? "default" : "outline"
-                          }
-                          className="rounded-full"
-                          onClick={() => handleTimeSelect(time)}
-                        >
-                          {time}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-
-                  {selectedTime && selectedDate && (
-                    <div className="p-5">
-                      <Card>
-                        <CardContent className="space-y-3 p-3">
-                          <div className="flex justify-between">
-                            <h2 className="font-bold">{service.name}</h2>
-                            <p className="text-sm font-bold">
-                              {Intl.NumberFormat("pt-BR", {
-                                style: "currency",
-                                currency: "BRL",
-                              }).format(Number(service.price))}
-                            </p>
-                          </div>
-
-                          <InfoRow
-                            label="Data"
-                            value={format(selectedDate, "d 'de' MMMM", {
-                              locale: ptBR,
-                            })}
-                          />
-                          <InfoRow label="Horário" value={selectedTime} />
-                          <InfoRow label="Barbearia" value={barbershop.name} />
-
-                          <SheetFooter>
-                            <SheetClose asChild>
-                              <Button
-                                variant="default"
-                                className="w-full"
-                                onClick={handleCreateBooking}
-                              >
-                                Reservar
-                              </Button>
-                            </SheetClose>
-                          </SheetFooter>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  )}
-                </SheetContent>
-              </Sheet>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Dialog
-        open={signInDialogOpen}
-        onOpenChange={(open) => setSignInDialogOpen(open)}
-      >
-        <DialogContent className="sm:max-w-[425px]">
-          <SignInDialog />
-        </DialogContent>
-      </Dialog>
-    </>
-  )
+const getAvailableTimeSlots = (
+  dailyBookings: Booking[],
+  allTimeSlots: readonly string[],
+): string[] => {
+  return allTimeSlots.filter((timeSlot) => {
+    const { hour: targetHour, minutes: targetMinutes } = parseTimeSlot(timeSlot)
+    return !isTimeSlotBooked(targetHour, targetMinutes, dailyBookings)
+  })
 }
 
+//--- Reusable Presentational Components for Booking Sheet ---
 const InfoRow = ({ label, value }: { label: string; value: string }) => (
   <div className="flex justify-between">
     <h2 className="text-sm text-gray-400">{label}</h2>
     <p className="text-sm">{value}</p>
   </div>
 )
+
+interface BookingCalendarViewProps {
+  selectedDate: Date | undefined
+  onDateSelect: (date: Date | undefined) => void
+  locale: Locale
+  classNames: typeof CALENDAR_CLASSNAMES
+}
+
+const BookingCalendarView = ({
+  selectedDate,
+  onDateSelect,
+  locale,
+  classNames,
+}: BookingCalendarViewProps) => (
+  <div className="flex justify-center border-b border-solid border-secondary px-5 py-6">
+    <Calendar
+      mode="single"
+      locale={locale}
+      selected={selectedDate}
+      onSelect={onDateSelect}
+      fromDate={new Date()} // Disable past dates
+      className="w-auto"
+      classNames={classNames}
+    />
+  </div>
+)
+
+interface TimeSlotPickerViewProps {
+  availableTimes: string[]
+  selectedTime: string | undefined
+  onTimeSelect: (time: string) => void
+  isLoading: boolean
+}
+
+const TimeSlotPickerView = ({
+  availableTimes,
+  selectedTime,
+  onTimeSelect,
+  isLoading,
+}: TimeSlotPickerViewProps) => (
+  <div className="flex gap-3 overflow-x-auto border-b border-solid border-secondary p-5 [&::-webkit-scrollbar]:hidden">
+    {isLoading && (
+      <p className="w-full text-center text-sm text-gray-400">
+        Carregando horários...
+      </p>
+    )}
+    {!isLoading && availableTimes.length === 0 && (
+      <p className="w-full text-center text-sm text-gray-400">
+        Não há horários disponíveis para esta data.
+      </p>
+    )}
+    {!isLoading &&
+      availableTimes.map((time) => (
+        <Button
+          key={time}
+          variant={selectedTime === time ? "default" : "outline"}
+          className="rounded-full px-4 py-2 text-sm" // Adjusted padding and text size
+          onClick={() => onTimeSelect(time)}
+        >
+          {time}
+        </Button>
+      ))}
+  </div>
+)
+
+interface BookingConfirmationViewProps {
+  serviceName: string
+  servicePrice: string | number
+  selectedDate: Date
+  selectedTime: string
+  barbershopName: string
+  locale: Locale
+}
+
+const BookingConfirmationView = ({
+  serviceName,
+  servicePrice,
+  selectedDate,
+  selectedTime,
+  barbershopName,
+  locale,
+}: BookingConfirmationViewProps) => (
+  <div className="p-5">
+    <Card className="bg-muted/50">
+      {" "}
+      {/* Added subtle background */}
+      <CardContent className="space-y-2 p-4">
+        {" "}
+        {/* Adjusted spacing and padding */}
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-bold">{serviceName}</h2>{" "}
+          {/* Increased font size */}
+          <p className="text-base font-bold text-primary">
+            {Intl.NumberFormat("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            }).format(Number(servicePrice))}
+          </p>
+        </div>
+        <InfoRow
+          label="Data"
+          value={format(selectedDate, "dd 'de' MMMM", { locale })}
+        />{" "}
+        {/* Changed date format */}
+        <InfoRow label="Horário" value={selectedTime} />
+        <InfoRow label="Barbearia" value={barbershopName} />
+      </CardContent>
+    </Card>
+  </div>
+)
+
+// --- Main ServiceItem Component ---
+export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
+  const { data: session } = useSession()
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  const [selectedTime, setSelectedTime] = useState<string | undefined>(
+    undefined,
+  )
+  const [dailyBookings, setDailyBookings] = useState<Booking[]>([])
+  const [bookingSheetOpen, setBookingSheetOpen] = useState(false)
+  const [signInDialogOpen, setSignInDialogOpen] = useState(false)
+  const [isLoadingBookings, setIsLoadingBookings] = useState(false)
+  const [isSubmittingBooking, setIsSubmittingBooking] = useState(false)
+
+  useEffect(() => {
+    const fetchBookingsForDate = async () => {
+      if (!selectedDate) {
+        setDailyBookings([])
+        return
+      }
+      setIsLoadingBookings(true)
+      try {
+        const bookings = await getBookings({
+          serviceId: service.id, // Assuming getBookings uses serviceId
+          date: selectedDate,
+        })
+        setDailyBookings(bookings)
+      } catch (error) {
+        console.error("Failed to fetch bookings:", error)
+        toast.error("Erro ao carregar horários disponíveis.")
+        setDailyBookings([]) // Clear bookings on error
+      } finally {
+        setIsLoadingBookings(false)
+      }
+    }
+    fetchBookingsForDate()
+  }, [selectedDate, service.id])
+
+  const availableTimes = useMemo(() => {
+    return getAvailableTimeSlots(dailyBookings, ALL_POSSIBLE_TIMES_SLOTS)
+  }, [dailyBookings])
+
+  const handleBookingSheetTrigger = () => {
+    if (session?.user) {
+      setBookingSheetOpen(true)
+    } else {
+      setSignInDialogOpen(true)
+    }
+  }
+
+  const handleSheetStateChange = (isOpen: boolean) => {
+    setBookingSheetOpen(isOpen)
+    if (!isOpen) {
+      setSelectedDate(undefined)
+      setSelectedTime(undefined)
+      setDailyBookings([])
+    }
+  }
+
+  const handleDateSelection = (date: Date | undefined) => {
+    setSelectedDate(date)
+    setSelectedTime(undefined) // Reset time selection when date changes
+  }
+
+  const handleTimeSelection = (time: string) => {
+    setSelectedTime(time)
+  }
+
+   const handleBookingSubmission = async () => {
+    if (!selectedDate || !selectedTime || !session?.user?.id) return;
+
+    setIsSubmittingBooking(true);
+    try {
+      const [hour, minutes] = selectedTime.split(":").map(Number);
+      const bookingDate = set(selectedDate, { hours: hour, minutes });
+
+      await createBooking({
+        serviceId: service.id,
+        userId: session.user.id,
+        date: bookingDate,
+      });
+      toast.success("Reserva criada com sucesso! 🎉");
+      handleSheetStateChange(false); // Close and reset sheet
+    } catch (error) {
+      console.error("Error creating booking:", error);
+      toast.error("Erro ao criar reserva. Tente novamente.");
+    } finally {
+      setIsSubmittingBooking(false);
+    }
+  };
+
+  return (
+    <>
+      <Card>
+        <CardContent className="flex items-stretch gap-4 p-3">
+          {" "}
+          {/* Changed items-center to items-stretch */}
+          <div className="relative h-[110px] w-[110px] flex-shrink-0">
+            {" "}
+            {/* Added flex-shrink-0 */}
+            <Image
+              src={service.imageUrl}
+              fill
+              sizes="(max-width: 768px) 100vw, 110px" // More specific sizes
+              className="rounded-lg object-cover"
+              alt={service.name}
+            />
+          </div>
+          <div className="flex flex-grow flex-col justify-between space-y-1">
+            {" "}
+            {/* Adjusted spacing */}
+            <div>
+              <h3 className="truncate text-sm font-semibold">{service.name}</h3>
+              <p className="mt-0.5 line-clamp-2 text-xs text-gray-400">
+                {service.description}
+              </p>{" "}
+              {/* Adjusted text size and margin */}
+            </div>
+            <div className="mt-auto flex items-center justify-between">
+              {" "}
+              {/* Pushed to bottom */}
+              <p className="text-sm font-bold text-primary">
+                {Intl.NumberFormat("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                }).format(Number(service.price))}
+              </p>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleBookingSheetTrigger}
+              >
+                Reservar
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Sheet open={bookingSheetOpen} onOpenChange={handleSheetStateChange}>
+        <SheetContent className="flex flex-col p-0">
+          {" "}
+          {/* Added flex flex-col */}
+          <SheetHeader className="border-b border-solid border-secondary px-5 py-4 text-center">
+            {" "}
+            {/* Adjusted padding */}
+            <SheetTitle className="text-lg">Fazer Reserva</SheetTitle>{" "}
+            {/* Increased font size */}
+          </SheetHeader>
+          <div className="flex-grow overflow-y-auto">
+            {" "}
+            {/* Allows content to scroll */}
+            <BookingCalendarView
+              selectedDate={selectedDate}
+              onDateSelect={handleDateSelection}
+              locale={ptBR}
+              classNames={CALENDAR_CLASSNAMES}
+            />
+            {selectedDate && (
+              <TimeSlotPickerView
+                availableTimes={availableTimes}
+                selectedTime={selectedTime}
+                onTimeSelect={handleTimeSelection}
+                isLoading={isLoadingBookings}
+              />
+            )}
+            {selectedTime && selectedDate && (
+              <BookingConfirmationView
+                serviceName={service.name}
+                servicePrice={service.price}
+                selectedDate={selectedDate}
+                selectedTime={selectedTime}
+                barbershopName={barbershop.name}
+                locale={ptBR}
+              />
+            )}
+          </div>
+          {selectedTime && selectedDate && (
+            <SheetFooter className="border-t border-solid border-secondary px-5 py-4">
+              {" "}
+              {/* Adjusted padding */}
+              <Button
+                className="w-full"
+                onClick={handleBookingSubmission}
+                disabled={isSubmittingBooking || !selectedDate || !selectedTime}
+              >
+                {isSubmittingBooking ? "Reservando..." : "Confirmar Reserva"}
+              </Button>
+            </SheetFooter>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      <Dialog open={signInDialogOpen} onOpenChange={setSignInDialogOpen}>
+        <DialogContent>
+          <SignInDialog />
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
