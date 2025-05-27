@@ -13,9 +13,9 @@ import { db } from "../_lib/prisma"
 
 /** Input parameters for booking creation. */
 interface CreateBookingParams {
-  userId?: string
-  serviceId: string
-  date: Date
+  userId?: string // This field is ignored, as user ID is derived from session.
+  serviceId: string // ID of the service being booked.
+  date: Date // Date and time of the booking, as a JavaScript Date object.
 }
 /** Expected structure of the session user object containing an ID. */
 interface SessionUser {
