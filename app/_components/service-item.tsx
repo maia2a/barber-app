@@ -2,7 +2,7 @@
 
 import { Calendar } from "@/app/_components/ui/calendar"
 import type { Barbershop, BarbershopService, Booking } from "@prisma/client"
-import { format, set, type Locale } from "date-fns"
+import { set, type Locale } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { useSession } from "next-auth/react"
 import Image from "next/image"
@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { createBooking } from "../_actions/create-booking"
 import { getBookings } from "../_actions/get-bookings"
+import { BookingConfirmationView } from "./booking-confirmation-view"
 import SignInDialog from "./sign-in-dialog"
 import { Button } from "./ui/button"
 import { Card, CardContent } from "./ui/card"
@@ -96,13 +97,6 @@ const getAvailableTimeSlots = (
   })
 }
 
-//--- Reusable Presentational Components for Booking Sheet ---
-const InfoRow = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex justify-between">
-    <h2 className="text-sm text-gray-400">{label}</h2>
-    <p className="text-sm">{value}</p>
-  </div>
-)
 
 interface BookingCalendarViewProps {
   selectedDate: Date | undefined
@@ -168,51 +162,6 @@ const TimeSlotPickerView = ({
   </div>
 )
 
-interface BookingConfirmationViewProps {
-  serviceName: string
-  servicePrice: string | number
-  selectedDate: Date
-  selectedTime: string
-  barbershopName: string
-  locale: Locale
-}
-
-const BookingConfirmationView = ({
-  serviceName,
-  servicePrice,
-  selectedDate,
-  selectedTime,
-  barbershopName,
-  locale,
-}: BookingConfirmationViewProps) => (
-  <div className="p-5">
-    <Card className="bg-muted/50">
-      {" "}
-      {/* Added subtle background */}
-      <CardContent className="space-y-2 p-4">
-        {" "}
-        {/* Adjusted spacing and padding */}
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-bold">{serviceName}</h2>{" "}
-          {/* Increased font size */}
-          <p className="text-base font-bold text-primary">
-            {Intl.NumberFormat("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            }).format(Number(servicePrice))}
-          </p>
-        </div>
-        <InfoRow
-          label="Data"
-          value={format(selectedDate, "dd 'de' MMMM", { locale })}
-        />{" "}
-        {/* Changed date format */}
-        <InfoRow label="Horário" value={selectedTime} />
-        <InfoRow label="Barbearia" value={barbershopName} />
-      </CardContent>
-    </Card>
-  </div>
-)
 
 // --- Main ServiceItem Component ---
 export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
@@ -382,7 +331,7 @@ export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
             {selectedTime && selectedDate && (
               <BookingConfirmationView
                 serviceName={service.name}
-                servicePrice={service.price}
+                servicePrice={Number(service.price)}
                 selectedDate={selectedDate}
                 selectedTime={selectedTime}
                 barbershopName={barbershop.name}
