@@ -1,31 +1,26 @@
 "use client"
-import type { Prisma } from "@prisma/client"
 import { format, isFuture } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import Image from "next/image"
+import { type SerializedBookingWithDetails } from "../bookings/page"
 import { BookingDetailsCard } from "./booking-detail-card"
 import { PhoneItem } from "./phone-item"
 import { Avatar, AvatarImage } from "./ui/avatar"
 import { Badge } from "./ui/badge"
+import { Button } from "./ui/button"
 import { Card, CardContent } from "./ui/card"
 import {
   Sheet,
+  SheetClose,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "./ui/sheet"
 
 interface BookingItemProps {
-  booking: Prisma.BookingGetPayload<{
-    include: {
-      service: {
-        include: {
-          barbershop: true
-        }
-      }
-    }
-  }>
+  booking: SerializedBookingWithDetails
 }
 export const BookingItem = ({ booking }: BookingItemProps) => {
   const {
@@ -107,6 +102,21 @@ export const BookingItem = ({ booking }: BookingItemProps) => {
             ))}
           </div>
         </div>
+        <SheetFooter className="mt-6">
+          <div className="flex items-center gap-3">
+            <SheetClose asChild>
+              <Button className="w-[50%]" variant={"outline"}>
+                Voltar
+              </Button>
+            </SheetClose>
+
+            {isConfirmed && (
+              <Button className="w-[50%]" variant={"destructive"}>
+                Cancelar Reserva
+              </Button>
+            )}
+          </div>
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   )

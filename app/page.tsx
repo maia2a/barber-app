@@ -7,6 +7,11 @@ import { QuickSearchBar } from "./_components/quick-search-bar"
 import SearchBar from "./_components/SearchBar"
 import { authOptions } from "./_lib/auth"
 import { db } from "./_lib/prisma"
+import {
+  makeBookingSerializable,
+  type RawBookingWithDetails,
+  type SerializedBookingWithDetails,
+} from "./_lib/types"
 
 const Home = async () => {
   // Get the current session to check if the user is authenticated
@@ -19,13 +24,13 @@ const Home = async () => {
       name: "desc",
     },
   })
-  const confirmedBookings = session?.user
+  const rawConfirmedBookings: RawBookingWithDetails[] = session?.user
     ? await db.booking.findMany({
         where: {
           userId: session.user.id,
           date: {
             gte: new Date(),
-          }
+          },
         },
         include: {
           service: {
@@ -39,6 +44,9 @@ const Home = async () => {
         },
       })
     : []
+
+  const confirmedBookings: SerializedBookingWithDetails[] =
+    rawConfirmedBookings.map(makeBookingSerializable)
   return (
     <div>
       {/* header */}

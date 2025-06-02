@@ -1,7 +1,8 @@
 "use client"
 
 import { Calendar } from "@/app/_components/ui/calendar"
-import type { Barbershop, BarbershopService, Booking } from "@prisma/client"
+import { type SerializedService } from "@/app/_lib/types"
+import type { Barbershop, Booking } from "@prisma/client"
 import { set, type Locale } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { useSession } from "next-auth/react"
@@ -25,7 +26,7 @@ import {
 
 // Define ServiceItemProps interface
 interface ServiceItemProps {
-  service: BarbershopService
+  service: SerializedService
   barbershop: Pick<Barbershop, "name">
 }
 
@@ -97,7 +98,6 @@ const getAvailableTimeSlots = (
   })
 }
 
-
 interface BookingCalendarViewProps {
   selectedDate: Date | undefined
   onDateSelect: (date: Date | undefined) => void
@@ -161,7 +161,6 @@ const TimeSlotPickerView = ({
       ))}
   </div>
 )
-
 
 // --- Main ServiceItem Component ---
 export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
@@ -230,28 +229,28 @@ export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
     setSelectedTime(time)
   }
 
-   const handleBookingSubmission = async () => {
-    if (!selectedDate || !selectedTime || !session?.user?.id) return;
+  const handleBookingSubmission = async () => {
+    if (!selectedDate || !selectedTime || !session?.user?.id) return
 
-    setIsSubmittingBooking(true);
+    setIsSubmittingBooking(true)
     try {
-      const [hour, minutes] = selectedTime.split(":").map(Number);
-      const bookingDate = set(selectedDate, { hours: hour, minutes });
+      const [hour, minutes] = selectedTime.split(":").map(Number)
+      const bookingDate = set(selectedDate, { hours: hour, minutes })
 
       await createBooking({
         serviceId: service.id,
         userId: session.user.id,
         date: bookingDate,
-      });
-      toast.success("Reserva criada com sucesso! 🎉");
-      handleSheetStateChange(false); // Close and reset sheet
+      })
+      toast.success("Reserva criada com sucesso! 🎉")
+      handleSheetStateChange(false) // Close and reset sheet
     } catch (error) {
-      console.error("Error creating booking:", error);
-      toast.error("Erro ao criar reserva. Tente novamente.");
+      console.error("Error creating booking:", error)
+      toast.error("Erro ao criar reserva. Tente novamente.")
     } finally {
-      setIsSubmittingBooking(false);
+      setIsSubmittingBooking(false)
     }
-  };
+  }
 
   return (
     <>
@@ -283,12 +282,7 @@ export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
             <div className="mt-auto flex items-center justify-between">
               {" "}
               {/* Pushed to bottom */}
-              <p className="text-sm font-bold text-primary">
-                {Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(Number(service.price))}
-              </p>
+              <p className="text-sm font-bold text-primary">{service.price}</p>
               <Button
                 variant="secondary"
                 size="sm"
@@ -331,7 +325,7 @@ export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
             {selectedTime && selectedDate && (
               <BookingConfirmationView
                 serviceName={service.name}
-                servicePrice={Number(service.price)}
+                servicePrice={service.price}
                 selectedDate={selectedDate}
                 selectedTime={selectedTime}
                 barbershopName={barbershop.name}

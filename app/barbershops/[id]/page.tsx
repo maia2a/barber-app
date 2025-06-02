@@ -3,6 +3,11 @@ import { ServiceItem } from "@/app/_components/service-item"
 import { SidebarSheets } from "@/app/_components/sidebar-sheets"
 import { Button } from "@/app/_components/ui/button"
 import { db } from "@/app/_lib/prisma"
+import {
+  makeServiceSerializable,
+  type SerializedService,
+} from "@/app/_lib/types"
+import type { Barbershop as PrismaBarbershop } from "@prisma/client"
 import { ChevronLeftIcon, MapPinIcon, StarIcon } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -13,7 +18,7 @@ export default async function BarbershopPage({
 }: {
   params: { id: string }
 }) {
-  const { id } = await params
+  const { id } = params
 
   const barbershop = await db.barbershop.findUnique({
     where: {
@@ -28,6 +33,20 @@ export default async function BarbershopPage({
     return notFound()
   }
 
+  const serializableServices: SerializedService[] = barbershop.services.map(
+    makeServiceSerializable,
+  )
+
+  const barbershopDataForClient: Pick<
+    PrismaBarbershop,
+    "id" | "name" | "address" | "imageUrl" | "phones"
+  > = {
+    id: barbershop.id,
+    name: barbershop.name,
+    address: barbershop.address,
+    imageUrl: barbershop.imageUrl,
+    phones: barbershop.phones,
+  }
   return (
     <div>
       {/* Header */}
@@ -79,10 +98,10 @@ export default async function BarbershopPage({
       <div className="space-y-3 border-b border-solid p-5">
         <h2 className="font-bold uppercase text-gray-400">Serviços</h2>
         <div className="space-y-3">
-          {barbershop.services.map((service) => (
+          {serializableServices.map((service) => (
             <ServiceItem
               key={service.id}
-              barbershop={barbershop}
+              barbershop={barbershopDataForClient}
               service={service}
             />
           ))}
@@ -91,8 +110,8 @@ export default async function BarbershopPage({
 
       {/* Contact */}
       <div className="space-y-3 p-5">
-        {barbershop.phones.map((phone) => (
-          <PhoneItem key={phone} phone={phone} />
+        {barbershop.phones.map((phone, index) => (
+          <PhoneItem key={index} phone={phone} />
         ))}
       </div>
     </div>
