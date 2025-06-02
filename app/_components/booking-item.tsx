@@ -2,9 +2,23 @@
 import { format, isFuture } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import Image from "next/image"
+import { useState } from "react"
+import { toast } from "sonner"
+import { deleteBooking } from "../_actions/delete-booking"
 import { type SerializedBookingWithDetails } from "../bookings/page"
 import { BookingDetailsCard } from "./booking-detail-card"
 import { PhoneItem } from "./phone-item"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./ui/alert-dialog"
 import { Avatar, AvatarImage } from "./ui/avatar"
 import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
@@ -23,12 +37,27 @@ interface BookingItemProps {
   booking: SerializedBookingWithDetails
 }
 export const BookingItem = ({ booking }: BookingItemProps) => {
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const {
     service: { barbershop },
   } = booking
   const isConfirmed = isFuture(booking.date)
+  const handleCancelBooking = async () => {
+    try {
+      await deleteBooking(booking.id)
+      setIsSheetOpen(false)
+      toast.success("Reserva cancelada com sucesso!")
+    } catch (error) {
+      console.log(error)
+      toast.error("Erro ao cancelar reserva, tente novamente.")
+    }
+  }
+
+  const handleOpenSheet = () => {
+    setIsSheetOpen(true)
+  }
   return (
-    <Sheet>
+    <Sheet open={isSheetOpen} onOpenChange={handleOpenSheet}>
       <SheetTrigger className="w-full">
         <Card className="min-w-[90%]">
           <CardContent className="flex justify-between p-0">
@@ -111,9 +140,40 @@ export const BookingItem = ({ booking }: BookingItemProps) => {
             </SheetClose>
 
             {isConfirmed && (
-              <Button className="w-[50%]" variant={"destructive"}>
-                Cancelar Reserva
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant={"destructive"} className="w-[50%]">
+                    Cancelar reserva
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="w-[90%]">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Você quer cancelar a sua reserva?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Você esta cancelando a reserva da {barbershop.name}. Esta
+                      ação não pode ser desfeita.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel asChild>
+                      <Button variant={"outline"} className="w-full">
+                        Cancelar
+                      </Button>
+                    </AlertDialogCancel>
+                    <AlertDialogAction asChild>
+                      <Button
+                        variant={"destructive"}
+                        className="w-full"
+                        onClick={handleCancelBooking}
+                      >
+                        Confirmar
+                      </Button>
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         </SheetFooter>
