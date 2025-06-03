@@ -42,10 +42,15 @@ export const BookingItem = ({ booking }: BookingItemProps) => {
     service: { barbershop },
   } = booking
   const isConfirmed = isFuture(booking.date)
+
+  const handleOpenSheetChange = (open: boolean) => {
+    setIsSheetOpen(open)
+  }
+
   const handleCancelBooking = async () => {
     try {
       await deleteBooking(booking.id)
-      setIsSheetOpen(false)
+      handleOpenSheetChange(false)
       toast.success("Reserva cancelada com sucesso!")
     } catch (error) {
       console.log(error)
@@ -53,11 +58,8 @@ export const BookingItem = ({ booking }: BookingItemProps) => {
     }
   }
 
-  const handleOpenSheet = () => {
-    setIsSheetOpen(true)
-  }
   return (
-    <Sheet open={isSheetOpen} onOpenChange={handleOpenSheet}>
+    <Sheet open={isSheetOpen} onOpenChange={handleOpenSheetChange}>
       <SheetTrigger className="w-full">
         <Card className="min-w-[90%]">
           <CardContent className="flex justify-between p-0">
@@ -131,10 +133,12 @@ export const BookingItem = ({ booking }: BookingItemProps) => {
             ))}
           </div>
         </div>
-        <SheetFooter className="mt-6">
-          <div className="flex items-center gap-3">
+        <SheetFooter className="mt-6 p-4">
+          <div
+            className={`grid ${isConfirmed ? "grid-cols-2" : "grid-cols-1"} w-full gap-3`}
+          >
             <SheetClose asChild>
-              <Button className="w-[50%]" variant={"outline"}>
+              <Button className="w-full" variant={"outline"}>
                 Voltar
               </Button>
             </SheetClose>
@@ -142,7 +146,7 @@ export const BookingItem = ({ booking }: BookingItemProps) => {
             {isConfirmed && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant={"destructive"} className="w-[50%]">
+                  <Button variant={"destructive"} className="w-full">
                     Cancelar reserva
                   </Button>
                 </AlertDialogTrigger>
