@@ -298,16 +298,12 @@ export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
       <Sheet open={bookingSheetOpen} onOpenChange={handleSheetStateChange}>
         <SheetContent className="flex flex-col p-0">
           {" "}
-          {/* Added flex flex-col */}
           <SheetHeader className="border-b border-solid border-secondary px-5 py-4 text-center">
             {" "}
-            {/* Adjusted padding */}
             <SheetTitle className="text-lg">Fazer Reserva</SheetTitle>{" "}
-            {/* Increased font size */}
           </SheetHeader>
           <div className="flex-grow overflow-y-auto">
             {" "}
-            {/* Allows content to scroll */}
             <BookingCalendarView
               selectedDate={selectedDate}
               onDateSelect={handleDateSelection}
@@ -336,7 +332,6 @@ export const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
           {selectedTime && selectedDate && (
             <SheetFooter className="border-t border-solid border-secondary px-5 py-4">
               {" "}
-              {/* Adjusted padding */}
               <Button
                 className="w-full"
                 onClick={handleBookingSubmission}

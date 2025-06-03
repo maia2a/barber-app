@@ -1,3 +1,5 @@
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
 import { getServerSession, type Session } from "next-auth"
 import { Banner } from "./_components/banner"
 import BarbershopItem from "./_components/barbershop-item"
@@ -53,8 +55,19 @@ const Home = async () => {
       <Header />
       {/* Main content */}
       <div className="p-5">
-        <h2 className="text-xl font-bold">Olá Gabriell</h2>
-        <p className="text-sm text-gray-500">Segunda-feira, 05 de agosto</p>
+        <h2 className="text-xl font-bold">
+          Olá {session?.user?.name || "Visitante"}
+        </h2>
+
+        <p>
+          <span className="text-sm capitalize text-gray-400">
+            {format(new Date(), "EEEE, dd", { locale: ptBR })}
+          </span>
+          <span className="text-sm text-gray-400">&nbsp;de&nbsp;</span>
+          <span className="text-sm capitalize text-gray-400">
+            {format(new Date(), "MMMM", { locale: ptBR })}
+          </span>
+        </p>
 
         {/* Search Bar */}
         <div>
