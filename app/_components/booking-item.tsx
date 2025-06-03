@@ -108,7 +108,7 @@ export const BookingItem = ({ booking }: BookingItemProps) => {
           />
           <Card className="z-50 mx-5 mb-3 w-full">
             <CardContent className="flex items-center gap-3 px-5 py-3">
-              <Avatar className="h-11 w-11">
+              <Avatar >
                 <AvatarImage src={barbershop.imageUrl} />
               </Avatar>
               <div>
