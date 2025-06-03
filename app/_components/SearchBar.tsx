@@ -39,7 +39,7 @@ export default function SearchBar() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex gap-2">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="mt-3 flex gap-2">
         <FormField
           control={form.control}
           name="title"
